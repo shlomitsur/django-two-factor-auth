@@ -1,6 +1,4 @@
-from .core import (
-    BackupTokensView, LoginView, PhoneDeleteView, PhoneSetupView,
-    QRGeneratorView, SetupCompleteView, SetupView,
-)
+from .core import (LoginView, SetupView, BackupTokensView, PhoneSetupView,
+                   PhoneDeleteView, SetupCompleteView, QRGeneratorView)
 from .mixins import OTPRequiredMixin
-from .profile import DisableView, ProfileView
+from .profile import ProfileView, DisableView

@@ -1,25 +1,31 @@
-from __future__ import absolute_import, division, unicode_literals
-
-import logging
 from binascii import unhexlify
+import logging
 
 from django.conf import settings
+from django.core.validators import RegexValidator
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
-from django_otp.models import Device
+
+from django_otp import Device
 from django_otp.oath import totp
 from django_otp.util import hex_validator, random_hex
-from phonenumber_field.modelfields import PhoneNumberField
-
-from .gateways import make_call, send_sms
 
 try:
     import yubiotp
 except ImportError:
     yubiotp = None
 
+from .gateways import make_call, send_sms
+
 
 logger = logging.getLogger(__name__)
+
+phone_number_validator = RegexValidator(
+    code='invalid-phone-number',
+    regex='^(\+|00)',
+    message=_('Please enter a valid phone number, including your country code '
+              'starting with + or 00.'),
+)
 
 PHONE_METHODS = (
     ('call', _('Phone Call')),
@@ -59,10 +65,9 @@ class PhoneDevice(Device):
     """
     Model with phone number and token seed linked to a user.
     """
-    class Meta:
-        app_label = 'two_factor'
-
-    number = PhoneNumberField()
+    number = models.CharField(max_length=16,
+                              validators=[phone_number_validator],
+                              verbose_name=_('number'))
     key = models.CharField(max_length=40,
                            validators=[key_validator],
                            default=random_hex,

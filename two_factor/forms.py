@@ -2,22 +2,21 @@ from binascii import unhexlify
 from time import time
 
 from django import forms
-from django.forms import Form, ModelForm
+from django.forms import ModelForm, Form
 from django.utils.translation import ugettext_lazy as _
+
 from django_otp.forms import OTPAuthenticationFormMixin
 from django_otp.oath import totp
 from django_otp.plugins.otp_totp.models import TOTPDevice
-
-from .models import (
-    PhoneDevice, get_available_methods, get_available_phone_methods,
-)
-from .utils import totp_digits
-from .validators import validate_international_phonenumber
+from two_factor.utils import totp_digits
 
 try:
     from otp_yubikey.models import RemoteYubikeyDevice, YubikeyDevice
 except ImportError:
     RemoteYubikeyDevice = YubikeyDevice = None
+
+from .models import (PhoneDevice, get_available_phone_methods,
+                     get_available_methods)
 
 
 class MethodForm(forms.Form):
@@ -31,8 +30,6 @@ class MethodForm(forms.Form):
 
 
 class PhoneNumberMethodForm(ModelForm):
-    number = forms.CharField(label=_("Phone Number"),
-                             validators=[validate_international_phonenumber])
     method = forms.ChoiceField(widget=forms.RadioSelect, label=_('Method'))
 
     class Meta:
@@ -45,10 +42,6 @@ class PhoneNumberMethodForm(ModelForm):
 
 
 class PhoneNumberForm(ModelForm):
-    # Cannot use PhoneNumberField, as it produces a PhoneNumber object, which cannot be serialized.
-    number = forms.CharField(label=_("Phone Number"),
-                             validators=[validate_international_phonenumber])
-
     class Meta:
         model = PhoneDevice
         fields = 'number',
@@ -73,7 +66,7 @@ class DeviceValidationForm(forms.Form):
 
 
 class YubiKeyDeviceForm(DeviceValidationForm):
-    token = forms.CharField(label=_("YubiKey"), widget=forms.PasswordInput())
+    token = forms.CharField(label=_("YubiKey"))
 
     error_messages = {
         'invalid_token': _("The YubiKey could not be verified."),
@@ -142,16 +135,6 @@ class AuthenticationTokenForm(OTPAuthenticationFormMixin, Form):
     otp_token = forms.IntegerField(label=_("Token"), min_value=1,
                                    max_value=int('9' * totp_digits()))
 
-    otp_token.widget.attrs.update({'autofocus': 'autofocus'})
-
-    # Our authentication form has an additional submit button to go to the
-    # backup token form. When the `required` attribute is set on an input
-    # field, that button cannot be used on browsers that implement html5
-    # validation. For now we'll use this workaround, but an even nicer
-    # solution would be to move the button outside the `<form>` and into
-    # its own `<form>`.
-    use_required_attribute = False
-
     def __init__(self, user, initial_device, **kwargs):
         """
         `initial_device` is either the user's default device, or the backup
@@ -167,7 +150,7 @@ class AuthenticationTokenForm(OTPAuthenticationFormMixin, Form):
         # IntegerField with a CharField.
         if RemoteYubikeyDevice and YubikeyDevice and \
                 isinstance(initial_device, (RemoteYubikeyDevice, YubikeyDevice)):
-            self.fields['otp_token'] = forms.CharField(label=_('YubiKey'), widget=forms.PasswordInput())
+            self.fields['otp_token'] = forms.CharField(label=_('YubiKey'))
 
     def clean(self):
         self.clean_otp(self.user)

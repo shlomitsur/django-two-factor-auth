@@ -1,9 +1,9 @@
 from django.conf import settings
-from django.utils.module_loading import import_string
+from ..compat import import_by_path
 
 
 def get_gateway_class(import_path):
-    return import_string(import_path)
+    return import_by_path(import_path)
 
 
 def make_call(device, token):

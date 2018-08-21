@@ -1,13 +1,17 @@
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
+
 from django.conf import settings
 from django.contrib import admin
 from django.contrib.admin import AdminSite
 from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth.views import redirect_to_login
-from django.shortcuts import resolve_url
-from django.utils.http import is_safe_url
+from django.core.urlresolvers import reverse
+from django.shortcuts import redirect
 
-from .models import PhoneDevice
 from .utils import monkeypatch_method
+from .models import PhoneDevice
 
 
 class AdminSiteOTPRequiredMixin(object):
@@ -17,7 +21,6 @@ class AdminSiteOTPRequiredMixin(object):
     Custom admin views should either be wrapped using :meth:`admin_view` or
     use :meth:`has_permission` in order to secure those views.
     """
-
     def has_permission(self, request):
         """
         Returns True if the given HttpRequest has permission to view
@@ -31,12 +34,14 @@ class AdminSiteOTPRequiredMixin(object):
         """
         Redirects to the site login page for the given HttpRequest.
         """
-        redirect_to = request.POST.get(REDIRECT_FIELD_NAME, request.GET.get(REDIRECT_FIELD_NAME))
-
-        if not redirect_to or not is_safe_url(url=redirect_to, allowed_hosts=[request.get_host()]):
-            redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
-
-        return redirect_to_login(redirect_to)
+        if REDIRECT_FIELD_NAME in request.GET:
+            url = request.GET[REDIRECT_FIELD_NAME]
+        else:
+            url = request.get_full_path()
+        return redirect('%s?%s' % (
+            reverse('two_factor:login'),
+            urlencode({REDIRECT_FIELD_NAME: url})
+        ))
 
 
 class AdminSiteOTPRequired(AdminSiteOTPRequiredMixin, AdminSite):
@@ -52,12 +57,14 @@ def patch_admin():
         """
         Redirects to the site login page for the given HttpRequest.
         """
-        redirect_to = request.POST.get(REDIRECT_FIELD_NAME, request.GET.get(REDIRECT_FIELD_NAME))
-
-        if not redirect_to or not is_safe_url(url=redirect_to, allowed_hosts=[request.get_host()]):
-            redirect_to = resolve_url(settings.LOGIN_REDIRECT_URL)
-
-        return redirect_to_login(redirect_to)
+        if REDIRECT_FIELD_NAME in request.GET:
+            url = request.GET[REDIRECT_FIELD_NAME]
+        else:
+            url = request.get_full_path()
+        return redirect('%s?%s' % (
+            reverse('two_factor:login'),
+            urlencode({REDIRECT_FIELD_NAME: url})
+        ))
 
 
 def unpatch_admin():
@@ -65,14 +72,8 @@ def unpatch_admin():
 
 
 original_login = AdminSite.login
+if getattr(settings, 'TWO_FACTOR_PATCH_ADMIN', True):
+    patch_admin()
 
 
-class PhoneDeviceAdmin(admin.ModelAdmin):
-    """
-    :class:`~django.contrib.admin.ModelAdmin` for
-    :class:`~two_factor.models.PhoneDevice`.
-    """
-    raw_id_fields = ('user',)
-
-
-admin.site.register(PhoneDevice, PhoneDeviceAdmin)
+admin.site.register(PhoneDevice)

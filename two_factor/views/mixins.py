@@ -1,8 +1,13 @@
-from django.contrib.auth import REDIRECT_FIELD_NAME
-from django.contrib.auth.views import redirect_to_login
-from django.core.exceptions import PermissionDenied
+try:
+    from urllib.parse import urlencode
+except ImportError:
+    from urllib import urlencode
+
+from django.core.urlresolvers import reverse
 from django.template.response import TemplateResponse
-from django.urls import reverse
+from django.contrib.auth import REDIRECT_FIELD_NAME
+from django.core.exceptions import PermissionDenied
+from django.shortcuts import redirect
 
 from ..utils import default_device
 
@@ -55,7 +60,7 @@ class OTPRequiredMixin(object):
         return self.verification_url and str(self.verification_url)
 
     def dispatch(self, request, *args, **kwargs):
-        if not request.user or not request.user.is_authenticated or \
+        if not request.user.is_authenticated() or \
                 (not request.user.is_verified() and default_device(request.user)):
             # If the user has not authenticated raise or redirect to the login
             # page. Also if the user just enabled two-factor authentication and
@@ -66,13 +71,19 @@ class OTPRequiredMixin(object):
             if self.raise_anonymous:
                 raise PermissionDenied()
             else:
-                return redirect_to_login(request.get_full_path(), self.get_login_url())
+                return redirect('%s?%s' % (
+                    self.get_login_url(),
+                    urlencode({self.redirect_field_name: request.get_full_path()})
+                ))
 
         if not request.user.is_verified():
             if self.raise_unverified:
                 raise PermissionDenied()
             elif self.get_verification_url():
-                return redirect_to_login(request.get_full_path(), self.get_verification_url())
+                return redirect('%s?%s' % (
+                    self.verification_url,
+                    urlencode({self.redirect_field_name: request.get_full_path()})
+                ))
             else:
                 return TemplateResponse(
                     request=request,

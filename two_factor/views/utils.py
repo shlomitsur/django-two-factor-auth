@@ -1,11 +1,10 @@
 import logging
-
-from django.core.exceptions import SuspiciousOperation
+from django.contrib.formtools.wizard.forms import ManagementForm
+from django.core.exceptions import ValidationError
 from django.utils.decorators import method_decorator
+from django.utils.functional import lazy_property
 from django.utils.translation import ugettext as _
-from formtools.wizard.forms import ManagementForm
-from formtools.wizard.storage.session import SessionStorage
-from formtools.wizard.views import SessionWizardView
+from two_factor.compat import SessionStorage, SessionWizardView
 
 logger = logging.getLogger(__name__)
 
@@ -21,20 +20,14 @@ class ExtraSessionStorage(SessionStorage):
         super(ExtraSessionStorage, self).init_data()
         self.data[self.validated_step_data_key] = {}
 
-    def reset(self):
-        if self.prefix in self.request.session:
-            super(ExtraSessionStorage, self).reset()
-        else:
-            self.init_data()
-
     def _get_validated_step_data(self):
         return self.data[self.validated_step_data_key]
 
     def _set_validated_step_data(self, validated_step_data):
         self.data[self.validated_step_data_key] = validated_step_data
 
-    validated_step_data = property(_get_validated_step_data,
-                                   _set_validated_step_data)
+    validated_step_data = lazy_property(_get_validated_step_data,
+                                        _set_validated_step_data)
 
 
 class IdempotentSessionWizardView(SessionWizardView):
@@ -108,7 +101,10 @@ class IdempotentSessionWizardView(SessionWizardView):
         # Check if form was refreshed
         management_form = ManagementForm(self.request.POST, prefix=self.prefix)
         if not management_form.is_valid():
-            raise SuspiciousOperation(_('ManagementForm data is missing or has been tampered with'))
+            raise ValidationError(
+                _('ManagementForm data is missing or has been tampered.'),
+                code='missing_management_form',
+            )
 
         form_current_step = management_form.cleaned_data['current_step']
         if (form_current_step != self.steps.current and

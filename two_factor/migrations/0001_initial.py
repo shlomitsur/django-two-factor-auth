@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
 
-import django.core.validators
+from django.db import models, migrations
 from django.conf import settings
-from django.db import migrations, models
+import django.core.validators
 
 
 class Migration(migrations.Migration):
@@ -19,10 +19,10 @@ class Migration(migrations.Migration):
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('name', models.CharField(help_text=b'The human-readable name of this device.', max_length=64)),
                 ('confirmed', models.BooleanField(default=True, help_text=b'Is this device ready for use?')),
-                ('number', models.CharField(max_length=16, verbose_name='number', validators=[django.core.validators.RegexValidator(regex='^(\\+|00)', message='Please enter a valid phone number, including your country code starting with + or 00.', code=b'invalid-phone-number')])),
+                ('number', models.CharField(max_length=16, verbose_name='number', validators=[django.core.validators.RegexValidator(regex=b'^(\\+|00)', message='Please enter a valid phone number, including your country code starting with + or 00.', code=b'invalid-phone-number')])),
                 ('key', models.CharField(help_text=b'Hex-encoded secret key', max_length=40)),
                 ('method', models.CharField(max_length=4, verbose_name='method', choices=[(b'call', 'Phone Call'), (b'sms', 'Text Message')])),
-                ('user', models.ForeignKey(help_text=b'The user that this device belongs to.', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE)),
+                ('user', models.ForeignKey(help_text=b'The user that this device belongs to.', to=settings.AUTH_USER_MODEL)),
             ],
             options={
                 'abstract': False,
