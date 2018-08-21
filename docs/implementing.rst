@@ -70,21 +70,6 @@ you have to use a custom admin site. You can either use
 :class:`~two_factor.admin.AdminSiteOTPRequiredMixin`. See also the Django
 documentation on `Hooking AdminSite instances into your URLconf`_.
 
-If you want to enforce two factor authentication in the admin and use the
-default admin site (e.g.  because 3rd party packages register to
-``django.contrib.admin.site``) you can monkey patch the default ``AdminSite``
-with this. In your ``urls.py``::
-
-    from django.contrib import admin
-    from two_factor.admin import AdminSiteOTPRequired
-
-    admin.site.__class__ = AdminSiteOTPRequired
-
-    urlpatterns = [
-        url(r'^admin/', admin.site.urls),
-        ...
-    ]
-
 
 Signals
 -------
@@ -93,8 +78,8 @@ When a user was successfully verified using a OTP, the signal
 user, the device used and the request itself. You can use this signal for
 example to warn a user when one of his backup tokens was used::
 
+    from django.contrib.sites.models import get_current_site
     from django.dispatch import receiver
-    from two_factor.compat import get_current_site
     from two_factor.signals import user_verified
 
 

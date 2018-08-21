@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: django-two-factor-auth\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-08-03 15:23+0200\n"
+"POT-Creation-Date: 2014-01-11 21:30+0100\n"
 "PO-Revision-Date: 2013-11-20 09:58+0000\n"
 "Last-Translator: Bouke Haarsma <bouke@webatoom.nl>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,12 +17,12 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: gateways.py:11
+#: gateways.py:10
 #, python-format
 msgid "Fake call to %(number)s: \"Your token is: %(token)s\""
 msgstr "Fake call to %(number)s: \"Your token is: %(token)s\""
 
-#: gateways.py:17
+#: gateways.py:16
 #, python-format
 msgid "Fake SMS to %(number)s: \"Your token is: %(token)s\""
 msgstr "Fake SMS to %(number)s: \"Your token is: %(token)s\""
@@ -162,14 +162,6 @@ msgstr "Registration"
 msgid "Register"
 msgstr "Register"
 
-#: templates/registration/logged_out.html:5
-msgid "Logged Out"
-msgstr "Logged Out"
-
-#: templates/registration/logged_out.html:6
-msgid "See you around!"
-msgstr "See you around!"
-
 #: templates/registration_complete.html:5
 msgid "Registration Complete"
 msgstr "Registration Complete"
@@ -189,3 +181,11 @@ msgid ""
 msgstr ""
 "Congratulations, you've made it. You have successfully\n"
 "    enabled two-factor authentication and logged in with your token."
+
+#: templates/registration/logged_out.html:5
+msgid "Logged Out"
+msgstr "Logged Out"
+
+#: templates/registration/logged_out.html:6
+msgid "See you around!"
+msgstr "See you around!"

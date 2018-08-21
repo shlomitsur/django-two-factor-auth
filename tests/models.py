@@ -1,12 +1,11 @@
 from django.conf import settings
-from django.contrib.auth.models import (
-    AbstractBaseUser, PermissionsMixin, UserManager as BaseUserManager,
-)
-from django.db import models
 
-# Only define these classes when we're testing a custom user model. Otherwise
-# we'll get SystemCheckError "fields.E304".
-if settings.AUTH_USER_MODEL == "tests.User":
+
+if settings.AUTH_USER_MODEL == 'tests.User':
+    from django.contrib.auth.models import (AbstractBaseUser, PermissionsMixin,
+                                            UserManager as BaseUserManager)
+    from django.db import models
+
     class UserManager(BaseUserManager):
         def _create_user(self, username, email, password,
                          is_staff, is_superuser, **extra_fields):

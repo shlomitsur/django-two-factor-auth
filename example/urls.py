@@ -1,16 +1,17 @@
-from django.conf import settings
-from django.conf.urls import include, url
+from django.conf.urls import patterns, include, url
 from django.contrib import admin
-from django.contrib.auth.views import LogoutView
 
-from two_factor.gateways.twilio.urls import urlpatterns as tf_twilio_urls
 from two_factor.urls import urlpatterns as tf_urls
+from two_factor.gateways.twilio.urls import urlpatterns as tf_twilio_urls
 
-from .views import (
-    ExampleSecretView, HomeView, RegistrationCompleteView, RegistrationView,
-)
+from .views import (ExampleSecretView, HomeView, RegistrationView,
+                    RegistrationCompleteView)
 
-urlpatterns = [
+
+admin.autodiscover()
+
+urlpatterns = patterns(
+    '',
     url(
         regex=r'^$',
         view=HomeView.as_view(),
@@ -18,7 +19,7 @@ urlpatterns = [
     ),
     url(
         regex=r'^account/logout/$',
-        view=LogoutView.as_view(),
+        view='django.contrib.auth.views.logout',
         name='logout',
     ),
     url(
@@ -36,14 +37,7 @@ urlpatterns = [
         view=RegistrationCompleteView.as_view(),
         name='registration_complete',
     ),
-    url(r'', include(tf_urls)),
-    url(r'', include(tf_twilio_urls)),
+    url(r'', include(tf_urls + tf_twilio_urls, 'two_factor')),
     url(r'', include('user_sessions.urls', 'user_sessions')),
-    url(r'^admin/', admin.site.urls),
-]
-
-if settings.DEBUG:
-    import debug_toolbar
-    urlpatterns += [
-        url(r'^__debug__/', include(debug_toolbar.urls)),
-    ]
+    url(r'^admin/', include(admin.site.urls)),
+)

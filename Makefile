@@ -1,6 +1,6 @@
 TARGET?=tests
 
-.PHONY: docs flake8 example test coverage migrations
+.PHONY: docs flake8 example test coverage
 
 docs:
 	cd docs; make html
@@ -17,18 +17,14 @@ test:
 	DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=. \
 		django-admin.py test ${TARGET}
 
-migrations:
-	DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=. \
-		django-admin.py makemigrations two_factor
-
 coverage:
 	coverage erase
 	DJANGO_SETTINGS_MODULE=tests.settings PYTHONPATH=. \
-		coverage run ---parallel --source=two_factor \
+		coverage run --branch --source=two_factor \
 		`which django-admin.py` test ${TARGET}
 	coverage combine
 	coverage html
-	coverage report --precision=2
+	coverage report
 
 tx-pull:
 	tx pull -a

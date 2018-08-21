@@ -2,9 +2,12 @@
 
 -e .
 
-# Additional runtime dependencies
+# Runtime dependencies
 
+Django
 twilio
+django_otp
+qrcode
 
 # Example app
 
@@ -17,10 +20,7 @@ django-user-sessions
 coverage
 flake8
 tox
-tox-pyenv
-detox
 mock
-isort
 
 # Translation
 
@@ -35,4 +35,3 @@ sphinx_rtd_theme
 
 wheel
 bumpversion
-twine

@@ -1,6 +1,8 @@
+from django.core.urlresolvers import reverse_lazy
 import os
 
 DEBUG = True
+TEMPLATE_DEBUG = DEBUG
 
 PROJECT_PATH = os.path.abspath(os.path.dirname(__file__))
 
@@ -22,7 +24,7 @@ TIME_ZONE = 'Europe/Amsterdam'
 # Make this unique, and don't share it with anybody.
 SECRET_KEY = 'DO NOT USE THIS KEY!'
 
-MIDDLEWARE = (
+MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'user_sessions.middleware.SessionMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -36,21 +38,12 @@ MIDDLEWARE = (
 
 ROOT_URLCONF = 'example.urls'
 
-TEMPLATES = [
-    {
-        'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(PROJECT_PATH, 'templates')],
-        'APP_DIRS': True,
-        'OPTIONS': {
-            'context_processors': [
-                'django.template.context_processors.debug',
-                'django.template.context_processors.request',
-                'django.contrib.auth.context_processors.auth',
-                'django.contrib.messages.context_processors.messages',
-            ],
-        },
-    },
-]
+TEMPLATE_DIRS = (
+    # Put strings here, like "/home/html/django_templates".
+    # Always use forward slashes, even on Windows.
+    # Don't forget to use absolute paths, not relative paths.
+    os.path.join(PROJECT_PATH, 'templates'),
+)
 
 INSTALLED_APPS = (
     'django.contrib.auth',
@@ -70,9 +63,9 @@ INSTALLED_APPS = (
 )
 
 
-LOGOUT_REDIRECT_URL = 'home'
-LOGIN_URL = 'two_factor:login'
-LOGIN_REDIRECT_URL = 'two_factor:profile'
+LOGOUT_URL = reverse_lazy('logout')
+LOGIN_URL = reverse_lazy('two_factor:login')
+LOGIN_REDIRECT_URL = reverse_lazy('two_factor:profile')
 
 INTERNAL_IPS = ('127.0.0.1',)
 
@@ -95,7 +88,7 @@ LOGGING = {
 
 TWO_FACTOR_CALL_GATEWAY = 'example.gateways.Messages'
 TWO_FACTOR_SMS_GATEWAY = 'example.gateways.Messages'
-PHONENUMBER_DEFAULT_REGION = 'NL'
+TWO_FACTOR_TOTP_DIGITS = 8
 
 SESSION_ENGINE = 'user_sessions.backends.db'
 

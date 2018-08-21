@@ -2,15 +2,15 @@
 Django Two-Factor Authentication
 ================================
 
-.. image:: https://travis-ci.org/Bouke/django-two-factor-auth.svg?branch=master
+.. image:: https://travis-ci.org/Bouke/django-two-factor-auth.png?branch=master
     :alt: Build Status
     :target: https://travis-ci.org/Bouke/django-two-factor-auth
 
-.. image:: https://codecov.io/gh/Bouke/django-two-factor-auth/branch/master/graph/badge.svg
+.. image:: https://coveralls.io/repos/Bouke/django-two-factor-auth/badge.png?branch=master
     :alt: Test Coverage
-    :target: https://codecov.io/gh/Bouke/django-two-factor-auth
+    :target: https://coveralls.io/r/Bouke/django-two-factor-auth?branch=master
 
-.. image:: https://badge.fury.io/py/django-two-factor-auth.svg
+.. image:: https://badge.fury.io/py/django-two-factor-auth.png
     :alt: PyPI
     :target: https://pypi.python.org/pypi/django-two-factor-auth
 
@@ -24,8 +24,8 @@ generator (optional).
 
 I would love to hear your feedback on this package. If you run into
 problems, please file an issue on GitHub, or contribute to the project by
-forking the repository and sending some pull requests. The package is
-translated into English, Dutch and other languages. Please contribute your own
+forking the repository and sending some pull requests. The package is currently
+translated into English, Dutch, Hebrew and Arabic. Please contribute your own
 language using Transifex_.
 
 Test drive this app through the online `example app`_, hosted by Heroku_. It
@@ -34,30 +34,61 @@ django-user-sessions_ for providing Django sessions with a foreign key to the
 user. Although the package is optional, it improves account security control
 over ``django.contrib.sessions``.
 
-Compatible with modern Django versions. At the moment of writing that's
-including 1.11 and 2.0 on Python 2.7, 3.4, 3.5 and 3.6. Documentation
-is available at `readthedocs.org`_.
-
+Compatible with Django 1.4, 1.5, 1.6 and 1.7 on Python 2.6, 2.7, 3.2, 3.3 and
+3.4. Documentation is available at `readthedocs.org`_.
 
 Installation
 ============
-Refer to the `installation instructions`_ in the documentation.
+Installation with ``pip``::
 
+    $ pip install django-two-factor-auth
 
-Getting help
-============
+Add the following apps to the ``INSTALLED_APPS``::
 
-For general questions regarding this package, please hop over to Stack 
-Overflow. If you think there is an issue with this package; check if the
-issue is already listed (either open or closed), and file an issue if
-it's not.
+    INSTALLED_APPS = (
+        ...
+        'django_otp',
+        'django_otp.plugins.otp_static',
+        'django_otp.plugins.otp_totp',
+        'two_factor',
+    )
 
+Add ``django_otp.middleware.OTPMiddleware`` to ``MIDDLEWARE_CLASSES``. It must
+be installed *after* ``AuthenticationMiddleware``::
+
+    MIDDLEWARE_CLASSES = [
+        'django.middleware.common.CommonMiddleware',
+        'django.contrib.sessions.middleware.SessionMiddleware',
+        'django.middleware.csrf.CsrfViewMiddleware',
+        'django.contrib.auth.middleware.AuthenticationMiddleware',
+        'django_otp.middleware.OTPMiddleware',
+        'django.contrib.messages.middleware.MessageMiddleware',
+    ]
+
+Configure a few urls::
+
+    from django.core.urlresolvers import reverse_lazy
+    LOGIN_URL = reverse_lazy('two_factor:login')
+
+Add the url routes::
+
+    urlpatterns = patterns('',
+        ...
+        url(r'', include('two_factor.urls', 'two_factor')),
+    )
+
+Be sure to remove any other login routes, otherwise the two-factor
+authentication might be circumvented. The admin interface should be
+automatically patched to use the new login method.
+
+Support for YubiKey_ is disabled by default, but enabling is easy. Please
+refer to the documentation for instructions.
 
 Contribute
 ==========
-* Submit issues to the `issue tracker`_ on Github.
-* Fork the `source code`_ at Github.
-* Write some code and make sure it is covered with unit tests.
+* Submit issues to the `issue tracker`_ on Github
+* Fork the `source code`_ at Github
+* Run the tests.
 * Send a pull request with your changes.
 * Provide a translation using Transifex_.
 
@@ -73,8 +104,7 @@ Or run a specific test with::
 
     make test TARGET=tests.tests.TwilioGatewayTest
 
-For Python compatibility, tox_ is used. You can run the full test suite,
-covering all supported Python and Django version with::
+For Python compatibility, tox_ is used. You can run the full test suite with::
 
     tox
 
@@ -82,35 +112,19 @@ Releasing
 ---------
 The following actions are required to push a new version:
 
-* Update release notes
-* If any new translations strings were added, push the new source language to
-  Transifex_. Make sure translators have sufficient time to translate those
-  new strings::
-
-    make tx-push
-
-* Add migrations::
-
     python example/manage.py makemigrations two_factor
-    git commit two_factor/migrations -m "Added migrations"
-
-* Update translations::
-
-    make tx-pull
-
-* Package and upload::
+    git commit -am "Added migrations"
 
     bumpversion [major|minor|patch]
-    git push && git push --tags
-    python setup.py sdist bdist_wheel
-    twine upload dist/*
-
+    git commit -am "Released [version]"
+    git tag [version]
+    python setup.py sdist upload
+    python setup.py bdist_wheel upload
 
 See Also
 ========
 Have a look at django-user-sessions_ for Django sessions with a foreign key to
 the user. This package is also included in the online `example app`_.
-
 
 License
 =======
@@ -126,8 +140,6 @@ The project is licensed under the MIT license.
 .. _issue tracker: https://github.com/Bouke/django-two-factor-auth/issues
 .. _source code: https://github.com/Bouke/django-two-factor-auth
 .. _readthedocs.org: http://django-two-factor-auth.readthedocs.org/
-.. _`installation instructions`:
-   http://django-two-factor-auth.readthedocs.io/en/stable/installation.html
 .. _Yubikey: https://www.yubico.com/products/yubikey-hardware/
 .. _`Hynek's Sharing Your Labor of Love: PyPI Quick And Dirty`:
    https://hynek.me/articles/sharing-your-labor-of-love-pypi-quick-and-dirty/

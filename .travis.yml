@@ -1,67 +1,66 @@
 language: python
 
-python:
- - 2.7
- - 3.4
- - 3.5
- - 3.6
-
-env:
- - DJANGO=1.11 VARIANT=normal
- - DJANGO=2.0 VARIANT=normal
-
 matrix:
   include:
-    - python: 3.6
-      env: DJANGO=1.11 VARIANT=yubikey
-    - python: 3.6
-      env: DJANGO=1.11 VARIANT=custom_user
+    - python: "2.6"
+      env: DJANGO=1.4 COVERAGE=YES
+    - python: "2.6"
+      env: DJANGO=1.4 YUBIKEY=YES
 
-    - python: 3.6
-      env: DJANGO=2.0 VARIANT=yubikey
-    - python: 3.6
-      env: DJANGO=2.0 VARIANT=custom_user
+    - python: "2.7"
+      env: DJANGO=1.5 YUBIKEY=YES
+    - python: "2.7"
+      env: DJANGO=1.5 AUTH_USER_MODEL=tests.User
+    - python: "3.2"
+      env: DJANGO=1.5
+    - python: "3.2"
+      env: DJANGO=1.5 AUTH_USER_MODEL=tests.User YUBIKEY=YES
 
-    - python: 3.5
-      env: DJANGO=2.1 VARIANT=normal
-    - python: 3.5
-      env: DJANGO=2.1 VARIANT=yubikey
-    - python: 3.5
-      env: DJANGO=2.1 VARIANT=custom_user
-    - python: 3.6
-      env: DJANGO=2.1 VARIANT=normal
-    - python: 3.6
-      env: DJANGO=2.1 VARIANT=yubikey
-    - python: 3.6
-      env: DJANGO=2.1 VARIANT=custom_user
+    - python: "2.7"
+      env: DJANGO=1.6
+    - python: "2.7"
+      env: DJANGO=1.6 AUTH_USER_MODEL=tests.User
+    - python: "3.3"
+      env: DJANGO=1.6
+    - python: "3.3"
+      env: DJANGO=1.6 AUTH_USER_MODEL=tests.User YUBIKEY=YES
 
-    - python: 3.5
-      env: DJANGO=master VARIANT=normal
-    - python: 3.5
-      env: DJANGO=master VARIANT=yubikey
-    - python: 3.5
-      env: DJANGO=master VARIANT=custom_user
-    - python: 3.6
-      env: DJANGO=master VARIANT=normal
-    - python: 3.6
-      env: DJANGO=master VARIANT=yubikey
-    - python: 3.6
-      env: DJANGO=master VARIANT=custom_user
+    - python: "2.7"
+      env: DJANGO=1.7
+    - python: "2.7"
+      env: DJANGO=1.7 AUTH_USER_MODEL=tests.User
+    - python: "3.4"
+      env: DJANGO=1.7 COVERAGE=YES
+    - python: "3.4"
+      env: DJANGO=1.7 AUTH_USER_MODEL=tests.User YUBIKEY=YES COVERAGE=YES
 
-    - python: 3.5
-      env: TOXENV=isort
-    - python: 3.5
-      env: TOXENV=flake8
+    - python: "3.4"
+      env: FLAKE8=YES
 
-  exclude:
-    - python: 2.7
-      env: DJANGO=2.0 VARIANT=normal
+install:
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.6 ]]; then pip install unittest2; fi
+  - if [[ $DJANGO ]]; then
+        if [[ $DJANGO != 1.8* ]]; then
+            pip install "django>=$DJANGO,<=$DJANGO.99";
+        else
+            pip install https://www.djangoproject.com/download/$DJANGO/tarball/;
+        fi;
+        pip install twilio==3.6.8 qrcode;
+        pip install -e .;
+    fi;
+  - if [[ $COVERAGE == "YES" ]]; then pip install coveralls; fi;
+  - if [[ $YUBIKEY == "YES" ]]; then pip install django-otp-yubikey; fi;
+  - if [[ $FLAKE8 == "YES" ]]; then pip install flake8; fi;
 
-  allow_failures:
-    - env: DJANGO=master VARIANT=normal
-    - env: DJANGO=master VARIANT=yubikey
-    - env: DJANGO=master VARIANT=custom_user
+script:
+  - if [[ $DJANGO ]]; then
+        if [[ $COVERAGE != "YES" ]]; then
+            make test;
+        else
+            make coverage;
+        fi;
+    fi;
+  - if [[ $FLAKE8 == "YES" ]]; then make flake8; fi;
 
-install: pip install tox-travis codecov
-script: tox
-after_success: codecov
+after_success:
+  - if [[ $COVERAGE == "YES" ]]; then coveralls; fi;
